@@ -1,0 +1,12 @@
+# Ignore virtual environment
+resume_env/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore large model and dataset files
+data/*.csv
+models/*.pkl
+uploads/
