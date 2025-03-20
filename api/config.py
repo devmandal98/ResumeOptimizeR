@@ -3,6 +3,38 @@ import os
 # Get the project root directory dynamically
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+CATEGORY_MAPPING = {
+    0: "HR",
+    1: "Software Engineer",
+    2: "Data Scientist",
+    3: "Marketing",
+    4: "Finance",
+    5: "Healthcare",
+    6: "Legal",
+    7: "Education",
+    8: "Sales",
+    9: "Engineering",
+    10: "Operations",
+    11: "Design",
+    12: "Customer Support",
+    13: "Content Writing",
+    14: "Product Management",
+    15: "Business Development",
+    16: "Consulting",
+    17: "Research",
+    18: "Administrative",
+    19: "Manufacturing",
+    20: "Retail",
+    21: "Government",
+    22: "Hospitality",
+    23: "Other",
+    24: "Cybersecurity",   # Added new category
+    25: "Blockchain Developer",
+    26: "Cloud Engineer",
+    27: "Robotics Engineer",
+    28: "Teaching" # Added new category
+}
+
 # Define folder paths
 DATA_DIR = os.path.join(BASE_DIR, "data")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
