@@ -32,7 +32,10 @@ CATEGORY_MAPPING = {
     25: "Blockchain Developer",
     26: "Cloud Engineer",
     27: "Robotics Engineer",
-    28: "Teaching" # Added new category
+    28: "Teaching", # Added new category
+    29: "AI/ML Engineer",
+    30: "Healthcare AI Specialist",
+    31: "Business Analyst"
 }
 
 # Define folder paths
