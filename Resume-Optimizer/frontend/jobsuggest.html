@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Job Suggestion 🔍</title>
+  <!-- Tailwind via CDN for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- markdown-it to convert Markdown to HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <style>
+    body { background: #1a202c; color: #edf2f7; }
+    .container { max-width: 36rem; margin: 2rem auto; }
+    .card { background: #2d3748; border-radius: .5rem; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container space-y-6">
+    <h1 class="text-3xl font-bold text-center">AI Job Suggester</h1>
+
+    <!-- Upload form -->
+    <form id="uploadForm" class="card space-y-4">
+      <label class="block">
+        <span class="text-lg">Upload your Resume (PDF):</span>
+        <input type="file" id="resumeFile" accept=".pdf"
+               class="mt-1 block w-full text-gray-300 bg-gray-700 rounded p-2" required>
+      </label>
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded">
+        Suggest Top Jobs
+      </button>
+    </form>
+
+    <!-- Result area -->
+    <div id="results" class="space-y-4"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const resultsDiv = document.getElementById('results');
+    const md = window.markdownit({ html: false, linkify: true });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      resultsDiv.innerHTML = `<p class="text-center text-gray-400">Analyzing…</p>`;
+
+      const fileInput = document.getElementById('resumeFile');
+      if (!fileInput.files.length) return;
+
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+
+      try {
+        const resp = await fetch('http://127.0.0.1:8000/suggest-jobs/', {
+          method: 'POST',
+          body: fd
+        });
+        if (!resp.ok) throw new Error(`Server error (${resp.status})`);
+
+        const { jobs } = await resp.json();
+        // Render Markdown into HTML
+        const html = md.render(jobs);
+
+        resultsDiv.innerHTML = `
+          <div class="card">
+            <h2 class="text-2xl font-semibold mb-2">Top Job Suggestions</h2>
+            <div class="prose prose-invert">${html}</div>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        resultsDiv.innerHTML = `
+          <div class="card text-red-400">
+            <strong>Error:</strong> ${err.message}
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
