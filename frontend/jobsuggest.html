@@ -3,50 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Job Suggestion 🔍</title>
-  <!-- Tailwind via CDN for quick styling -->
+  <title>AI Career Path | Job Suggestion</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- markdown-it to convert Markdown to HTML -->
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body { background: #1a202c; color: #edf2f7; }
-    .container { max-width: 36rem; margin: 2rem auto; }
-    .card { background: #2d3748; border-radius: .5rem; padding: 1rem; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    body { 
+      background: radial-gradient(circle at top right, #1a202c, #0f172a); 
+      color: #edf2f7; 
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-4px);
+      border-color: #3b82f6;
+    }
+    .custom-loader {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #1e293b;
+      border-bottom-color: #3b82f6;
+      border-radius: 50%;
+      display: inline-block;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
   </style>
 </head>
-<body>
+<body class="py-10 px-4">
 
-  <div class="container space-y-6">
-    <h1 class="text-3xl font-bold text-center">AI Job Suggester</h1>
+  <div class="max-w-4xl mx-auto space-y-8">
+    <div class="text-center space-y-2">
+      <h1 class="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
+        AI Job Suggester
+      </h1>
+      <p class="text-gray-400 text-lg">Upload your resume and find your perfect career match in seconds.</p>
+    </div>
 
-    <!-- Upload form -->
-    <form id="uploadForm" class="card space-y-4">
-      <label class="block">
-        <span class="text-lg">Upload your Resume (PDF):</span>
-        <input type="file" id="resumeFile" accept=".pdf"
-               class="mt-1 block w-full text-gray-300 bg-gray-700 rounded p-2" required>
-      </label>
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded">
-        Suggest Top Jobs
-      </button>
-    </form>
+    <div class="glass-card rounded-2xl p-8 shadow-2xl">
+      <form id="uploadForm" class="space-y-6">
+        <div class="flex items-center justify-center w-full">
+          <label for="resumeFile" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-gray-800/50 transition-all">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-400 mb-2"></i>
+              <p id="fileName" class="text-sm text-gray-400">Click to upload or drag and drop PDF</p>
+            </div>
+            <input type="file" id="resumeFile" class="hidden" accept=".pdf" required />
+          </label>
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2">
+          <span>Analyze Resume & Find Jobs</span>
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+    </div>
 
-    <!-- Result area -->
-    <div id="results" class="space-y-4"></div>
+    <div id="results" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
   </div>
 
   <script>
     const form = document.getElementById('uploadForm');
     const resultsDiv = document.getElementById('results');
-    const md = window.markdownit({ html: false, linkify: true });
+    const fileInput = document.getElementById('resumeFile');
+    const fileNameLabel = document.getElementById('fileName');
+
+    // Update label when file is chosen
+    fileInput.addEventListener('change', () => {
+      if(fileInput.files.length) fileNameLabel.textContent = fileInput.files[0].name;
+    });
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      resultsDiv.innerHTML = `<p class="text-center text-gray-400">Analyzing…</p>`;
-
-      const fileInput = document.getElementById('resumeFile');
-      if (!fileInput.files.length) return;
+      
+      // Full width loading state
+      resultsDiv.className = "flex flex-col items-center justify-center py-20 col-span-full";
+      resultsDiv.innerHTML = `
+        <span class="custom-loader"></span>
+        <p class="mt-4 text-blue-400 font-semibold animate-pulse text-xl">Scanning Resume & Fetching Opportunities...</p>
+      `;
 
       const fd = new FormData();
       fd.append('file', fileInput.files[0]);
@@ -56,27 +98,71 @@
           method: 'POST',
           body: fd
         });
-        if (!resp.ok) throw new Error(`Server error (${resp.status})`);
+        
+        if (!resp.ok) throw new Error(`Server connection failed (${resp.status})`);
 
-        const { jobs } = await resp.json();
-        // Render Markdown into HTML
-        const html = md.render(jobs);
+        const data = await resp.json();
+        const jobs = data.jobs;
 
-        resultsDiv.innerHTML = `
-          <div class="card">
-            <h2 class="text-2xl font-semibold mb-2">Top Job Suggestions</h2>
-            <div class="prose prose-invert">${html}</div>
-          </div>
-        `;
+        if (!jobs || jobs.length === 0) {
+          resultsDiv.innerHTML = `<div class="glass-card p-10 text-center col-span-full rounded-2xl text-xl">No specific jobs found. Try a different search!</div>`;
+          return;
+        }
+
+        // Reset grid layout
+        resultsDiv.className = "grid grid-cols-1 md:grid-cols-2 gap-6 pb-10";
+        let jobsHtml = "";
+        
+        jobs.forEach((job, index) => {
+          jobsHtml += `
+            <div class="glass-card rounded-2xl p-6 flex flex-col justify-between" style="animation: fadeIn 0.5s ease forwards ${index * 0.1}s; opacity: 0;">
+              <div>
+                <div class="flex justify-between items-start mb-4">
+                  <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Recommended Match</span>
+                  <i class="fa-solid fa-bookmark text-gray-600 hover:text-blue-400 cursor-pointer"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1 leading-tight">${job.title}</h3>
+                <p class="text-blue-400 font-semibold mb-3 flex items-center gap-2">
+                   <i class="fa-solid fa-building text-sm"></i> ${job.company}
+                </p>
+                <p class="text-gray-400 text-sm mb-4 line-clamp-3">
+                  ${job.description.replace(/<[^>]*>?/gm, '')}
+                </p>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-700/50 flex items-center justify-between">
+                <span class="text-gray-500 text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-location-dot"></i> ${job.location || 'Remote'}
+                </span>
+                <a href="${job.link}" target="_blank" 
+                   class="bg-gray-800 hover:bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                   Apply <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </a>
+              </div>
+            </div>
+          `;
+        });
+
+        resultsDiv.innerHTML = jobsHtml;
+
       } catch (err) {
-        console.error(err);
+        resultsDiv.className = "col-span-full";
         resultsDiv.innerHTML = `
-          <div class="card text-red-400">
-            <strong>Error:</strong> ${err.message}
+          <div class="glass-card border-red-500/50 p-6 text-center rounded-2xl text-red-400">
+            <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+            <p class="font-bold text-lg">Oops! Something went wrong.</p>
+            <p class="text-sm opacity-80">${err.message}</p>
           </div>
         `;
       }
     });
   </script>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </body>
 </html>

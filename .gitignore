@@ -1,26 +1,35 @@
-# Node dependencies (Crucial - do not push these!)
-node_modules/
-frontend/node_modules/
-dist/
-build/
 
-# Python Virtual Environment
+# --- Project Specific ---
+# Ignore uploaded resumes but keep the folder
+backend/models/uploads/*
+!backend/models/uploads/.gitkeep
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
 .venv/
 venv/
 env/
 ENV/
+*.env
+.env.*
 
-# Local Environment Secrets
-.env
-.env.local
-.env.*.local
+# --- Node / Frontend ---
+node_modules/
+frontend/node_modules/
+dist/
+build/
+.pnp
+.pnp.js
 
-# Debug logs
+# --- Logs & OS ---
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# OS Files
 .DS_Store
 Thumbs.db
+*.log
+
+# --- Note: Removed readme.md from here so it CAN be tracked ---
 readme.md

@@ -1,35 +1,45 @@
 import os
 import requests
+from dotenv import load_dotenv
+from pathlib import Path
 
-def suggest_top_jobs_from_resume(resume_text: str):
+# Fix: Ensure .env is loaded even when running from root
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+def get_job_search_query(resume_text: str):
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return "Software Engineer" # Fallback if key is missing
+
     prompt = f"""
-You are an AI career advisor.
-
-A user uploaded the following resume. Analyze the resume deeply and suggest the top 10 job roles the candidate is best suited for based on their skills, experience, and interests.
-
-For each job role, return:
-1. Job Title
-2. Match Score (as a percentage)
-3. One-line explanation
-
-Resume:
-\"\"\"
-{resume_text}
-\"\"\"
-"""
+    Analyze the following resume and generate a short search query (3-5 words) 
+    for a job board. Focus on strongest technical skills.
+    Return ONLY the keywords. No quotes, no explanation.
+    
+    Resume:
+    {resume_text}
+    """
 
     headers = {
-        "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
     payload = {
-        "model": "llama3-8b-8192",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}],
     }
 
-    response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
-    content = response.json()["choices"][0]["message"]["content"]
-    return content.strip()
+    try:
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        res_data = response.json()
+        
+        if "choices" in res_data:
+            query = res_data["choices"][0]["message"]["content"]
+            # Force result to be a clean string
+            return str(query).strip().replace('"', '')
+        return "Software Engineer"
+    except Exception as e:
+        print(f"Groq Error: {e}")
+        return "Software Engineer"
